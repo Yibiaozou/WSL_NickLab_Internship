@@ -1,0 +1,114 @@
+import cdstoolbox as ct
+
+# Initialise the application and provide a title
+@ct.application(
+    description='Yearly anomalies of total precipitation of 1951-1980 - relative to 1981-2010 climate normal period'
+)
+
+@ct.input.dropdown('freq', label='Frequency', default='month', values=['dayofyear', 'weekofyear', 'month'], link=True,
+                   help='Start values will change accordingly.')
+@ct.input.dropdown('start', label='Start', when='dayofyear', default=270, values=range(1, 367))
+@ct.input.dropdown('start', label='Start', when='weekofyear', default=46, values=range(1, 54))
+@ct.input.dropdown('start', label='Start', when='month', default=10, values=range(1, 13))
+
+# Define an output widget
+@ct.output.download()
+
+# Define the application function
+def calculate_anomalies(freq, start):
+   
+    # Extract monthly mean total precipitation for 1951 to 1978
+    prec_monthly_mean_1951to1978 = ct.catalogue.retrieve(
+        'reanalysis-era5-single-levels-monthly-means-preliminary-back-extension',
+        {
+            'product_type': 'monthly_averaged_reanalysis',
+            'variable': 'total_precipitation',
+            'year': [
+                '1950', '1951', '1952',
+                '1953', '1954', '1955',
+                '1956', '1957', '1958',
+                '1959', '1960', '1961',
+                '1962', '1963', '1964',
+                '1965', '1966', '1967',
+                '1968', '1969', '1970',
+                '1971', '1972', '1973',
+                '1974', '1975', '1976',
+                '1977', '1978',
+            ],
+            'month': [
+                '01', '02', '03',
+                '04', '05', '06',
+                '07', '08', '09',
+                '10', '11', '12',
+            ],
+            'time': '00:00',
+            'area': [
+                90, -180, -90,
+                180,
+            ],
+        }
+    )
+    
+    # Extract monthly mean total precipitation for 1979 to 1980
+    prec_monthly_mean_1979to1980 = ct.catalogue.retrieve(
+        'reanalysis-era5-single-levels-monthly-means',
+        {
+            'product_type': 'monthly_averaged_reanalysis',
+            'variable': 'total_precipitation',
+            'year': [
+                '1979', '1980',
+            ],
+            'month': [
+                '01', '02', '03',
+                '04', '05', '06',
+                '07', '08', '09',
+                '10', '11', '12',
+            ],
+            'time': '00:00',
+            'area': [
+                90, -180, -90,
+                180,
+            ],
+        }
+    )
+    
+    # Extract monthly mean total precipitation for 1981 to 2010
+    prec_monthly_mean_1981to2010 = ct.catalogue.retrieve(
+        'reanalysis-era5-single-levels-monthly-means',
+        {
+            'product_type': 'monthly_averaged_reanalysis',
+            'variable': 'total_precipitation',
+            'year': [
+                '1981', '1982', '1983',
+                '1984', '1985', '1986',
+                '1987', '1988', '1989',
+                '1990', '1991', '1992',
+                '1993', '1994', '1995',
+                '1996', '1997', '1998',
+                '1999', '2000', '2001',
+                '2002', '2003', '2004',
+                '2005', '2006', '2007',
+                '2008', '2009', '2010',
+            ],
+            'month': [
+                '01', '02', '03',
+                '04', '05', '06',
+                '07', '08', '09',
+                '10', '11', '12',
+            ],
+            'time': '00:00',
+            'area': [
+                90, -180, -90,
+                180,
+            ],
+        }
+    )
+    
+    # calculate climatology
+    climatology_1951to1978 = ct.climate.climatology_mean(prec_monthly_mean_1951to1978, frequency=freq)
+    climatology_1979to1980 = ct.climate.climatology_mean(prec_monthly_mean_1979to1980, frequency=freq)
+    climatology_1981to2010 = ct.climate.climatology_mean(prec_monthly_mean_1981to2010, frequency=freq)
+
+    return climatology_1951to1978  
+    # return climatology_1979to1980
+    # return climatology_1979to1980
